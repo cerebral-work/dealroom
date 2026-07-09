@@ -1,8 +1,7 @@
-// Service worker — app-shell precache with API bypass.
-// Cache-first for static assets, network-first for everything else.
-// NEVER cache /api/* (requires live session — files-portal pattern).
+// Wire PWA — Service Worker
+// "Inside the wire" — offline-capable data room
 
-const CACHE = "cf-pwa-v1";
+const CACHE = "wire-pwa-v1";
 const PRECACHE = ["/", "/index.html", "/manifest.json", "/icons/icon.svg"];
 
 self.addEventListener("install", (e) => {

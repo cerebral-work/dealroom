@@ -1,0 +1,592 @@
+<script lang="ts">
+  import { wire, gtm, socialProof, useCases } from "$lib/data/wire";
+
+  let activeTab = $state("team");
+
+  const tabs = [
+    { id: "team", label: "Team & Advisors" },
+    { id: "community", label: "Community" },
+    { id: "onboarding", label: "Onboarding" },
+    { id: "partner", label: "Partner Portal" },
+    { id: "certification", label: "Certification" },
+    { id: "layout", label: "Customize Layout" },
+    { id: "analytics", label: "Analytics" },
+    { id: "access", label: "Access Control" },
+    { id: "casestudy", label: "Case Study Builder" },
+  ];
+
+  // Team data (from research)
+  const team = [
+    { name: "Chris Todie", role: "Founder & CEO", bio: "Building Wire. Ex-Cerebral. Engineer-first approach to AI infrastructure.", focus: "Product, architecture, founder-led sales" },
+  ];
+
+  const advisors = [
+    { name: "Cerebral", role: "Anchor Investor ($150k)", bio: "Pre-seed anchor. Strategic guidance on enterprise sales and infrastructure.", focus: "Fundraising, enterprise GTM" },
+  ];
+
+  // Onboarding wizard state
+  let onboardingStep = $state(0);
+  let onboardingRole = $state("");
+  let onboardingUseCase = $state("");
+  let onboardingComplete = $state(false);
+
+  const onboardingSteps = [
+    { title: "What's your role?", options: ["Developer", "Team lead", "Platform engineer", "Security lead", "CTO/VP Eng"] },
+    { title: "What are you building?", options: ["Internal AI tools", "Customer-facing AI product", "Regulated workflow", "Multi-agent system", "Something else"] },
+    { title: "What's your biggest pain?", options: ["Context doesn't persist", "No audit trail", "Agent vendor lock-in", "Permissions/PII control", "Reprocessing costs"] },
+  ];
+
+  function selectOnboarding(option: string) {
+    if (onboardingStep === 0) onboardingRole = option;
+    if (onboardingStep === 1) onboardingUseCase = option;
+    if (onboardingStep < onboardingSteps.length - 1) {
+      onboardingStep++;
+    } else {
+      onboardingComplete = true;
+    }
+  }
+
+  function resetOnboarding() {
+    onboardingStep = 0;
+    onboardingRole = "";
+    onboardingUseCase = "";
+    onboardingComplete = false;
+  }
+
+  // Customizable layout state — reorderable section list
+  let sections = $state([
+    { id: "pitch", name: "Pitch Deck", visible: true },
+    { id: "value-prop", name: "Value Prop", visible: true },
+    { id: "data-room", name: "Data Room", visible: true },
+    { id: "compliance", name: "Compliance", visible: true },
+    { id: "competitive", name: "Competitive", visible: true },
+    { id: "roadmap", name: "Roadmap", visible: true },
+    { id: "product", name: "Product", visible: true },
+    { id: "metrics", name: "Metrics", visible: true },
+    { id: "brand", name: "Brand", visible: true },
+    { id: "research", name: "Research", visible: true },
+    { id: "engage", name: "Engage", visible: true },
+  ]);
+
+  let draggedIndex = $state(-1);
+
+  function dragStart(index: number) {
+    draggedIndex = index;
+  }
+
+  function dragOver(e: DragEvent, index: number) {
+    e.preventDefault();
+    if (draggedIndex === -1 || draggedIndex === index) return;
+    const item = sections[draggedIndex];
+    const newSections = sections.filter((_, i) => i !== draggedIndex);
+    newSections.splice(index, 0, item);
+    sections = newSections;
+    draggedIndex = index;
+  }
+
+  function dragEnd() {
+    draggedIndex = -1;
+  }
+
+  function toggleVisibility(id: string) {
+    sections = sections.map((s) => (s.id === id ? { ...s, visible: !s.visible } : s));
+  }
+
+  // Access control state
+  let accessLevel = $state("public");
+
+  const accessLevels = [
+    { id: "public", label: "Public", desc: "All content visible. No gate." },
+    { id: "email", label: "Email Gate", desc: "Newsletter signup required for detailed content." },
+    { id: "investor", label: "Investor Access", desc: "NDA on file. Full data room + financials." },
+    { id: "partner", label: "Partner Portal", desc: "Channel partners. Co-sell materials, deal registration." },
+  ];
+
+  // Case study builder state
+  let csCompany = $state("");
+  let csIndustry = $state("");
+  let csChallenge = $state("");
+  let csSolution = $state("");
+  let csResult = $state("");
+  let csGenerated = $state("");
+
+  function generateCaseStudy() {
+    if (!csCompany || !csChallenge) return;
+    csGenerated = `# Case Study: ${csCompany}
+
+**Industry:** ${csIndustry || "—"}
+
+## The Challenge
+${csChallenge}
+
+## The Solution
+${csSolution || `Wire deployed ${csIndustry ? `in ${csIndustry}` : ""} as the context layer for their AI agents. Per-container isolation provided the compliance posture they needed, while MCP-native integration meant zero changes to existing agent workflows.`}
+
+## The Result
+${csResult || "Pending — case study in progress."}
+
+## Why Wire
+- Per-container isolation: ${csIndustry || "industry"}-grade data separation
+- MCP-native: no agent workflow changes
+- Open-source: no vendor lock-in
+- Audit trail: every access logged
+
+---
+*Generated by Wire Data Room. Edit and customize before sharing.*
+`;
+  }
+
+  // Analytics (mock dashboard)
+  const analyticsData = [
+    { metric: "Page Views (30d)", value: "12,847", trend: "+18%" },
+    { metric: "Unique Visitors", value: "3,219", trend: "+12%" },
+    { metric: "Avg Session", value: "4m 32s", trend: "+8%" },
+    { metric: "Pitch Deck Views", value: "847", trend: "+34%" },
+    { metric: "Data Room Access", value: "312", trend: "+22%" },
+    { metric: "Demo Requests", value: "47", trend: "+15%" },
+    { metric: "Newsletter Signups", value: "128", trend: "+41%" },
+    { metric: "Bounce Rate", value: "32%", trend: "-5%" },
+  ];
+
+  // Community events (mock)
+  const events = [
+    { date: "2026-07-15", title: "Wire Office Hours — Container Architecture Deep Dive", type: "Online", host: "Chris Todie" },
+    { date: "2026-07-22", title: "MCP Integration Workshop — Connect Your Agent", type: "Workshop", host: "Chris Todie" },
+    { date: "2026-08-05", title: "Compliance Roundtable — SOC 2 / GDPR for AI Infrastructure", type: "Roundtable", host: "TBD" },
+    { date: "2026-08-19", title: "Wire Community Call — Pipeline + Roadmap Update", type: "Community", host: "Chris Todie" },
+  ];
+
+  // Partner portal data (from gtm)
+  const partnerChannels = gtm.dualMotion || [];
+</script>
+
+<div class="page">
+  <div class="page-header">
+    <div class="mono-label">Community & Access</div>
+    <h1>Team, community, and access control</h1>
+    <p>Who's building Wire, how to join, and who sees what.</p>
+  </div>
+
+  <div class="tab-bar">
+    {#each tabs as tab}
+      <button
+        class="tab-btn"
+        class:active={activeTab === tab.id}
+        onclick={() => (activeTab = tab.id)}
+      >
+        {tab.label}
+      </button>
+    {/each}
+  </div>
+
+  {#if activeTab === "team"}
+    <section class="section">
+      <div class="section-header">
+        <div class="mono-label">Team</div>
+        <h2>Who's building Wire</h2>
+      </div>
+      <div class="team-grid">
+        {#each team as member}
+          <div class="team-card card">
+            <div class="team-avatar">{member.name.charAt(0)}</div>
+            <h4>{member.name}</h4>
+            <div class="team-role">{member.role}</div>
+            <p>{member.bio}</p>
+            <div class="mono-label">Focus</div>
+            <div class="team-focus">{member.focus}</div>
+          </div>
+        {/each}
+      </div>
+
+      <div class="section-header" style="margin-top: var(--space-xl);">
+        <div class="mono-label">Advisors & Investors</div>
+        <h2>Strategic backing</h2>
+      </div>
+      <div class="team-grid">
+        {#each advisors as advisor}
+          <div class="team-card card">
+            <div class="team-avatar">{advisor.name.charAt(0)}</div>
+            <h4>{advisor.name}</h4>
+            <div class="team-role">{advisor.role}</div>
+            <p>{advisor.bio}</p>
+            <div class="mono-label">Focus</div>
+            <div class="team-focus">{advisor.focus}</div>
+          </div>
+        {/each}
+      </div>
+
+      <div class="callout">
+        <div class="mono-label">Honest Frame</div>
+        <p>Wire is a single-founder company today. The pre-seed round funds the first hires: a senior engineer (container/infra) and a design-partner sales lead. We're not pretending we have a team we don't. If you're interested in joining, <a href="mailto:chris@usewire.io?subject=Joining Wire">reach out</a>.</p>
+      </div>
+    </section>
+
+  {:else if activeTab === "community"}
+    <section class="section">
+      <div class="section-header">
+        <div class="mono-label">Community</div>
+        <h2>Events and gatherings</h2>
+      </div>
+      <div class="events-list">
+        {#each events as event}
+          <div class="event-row card">
+            <div class="event-date">{event.date}</div>
+            <div class="event-body">
+              <div class="event-title">{event.title}</div>
+              <div class="event-meta">
+                <span class="badge badge-accent">{event.type}</span>
+                <span>Hosted by {event.host}</span>
+              </div>
+            </div>
+            <button class="btn btn-outline btn-sm">RSVP</button>
+          </div>
+        {/each}
+      </div>
+      <div class="callout">
+        <p>Events are free and open. RSVP to get the calendar invite. Office hours are biweekly; workshops are monthly. All recorded and posted to the research archive.</p>
+      </div>
+    </section>
+
+  {:else if activeTab === "onboarding"}
+    <section class="section">
+      <div class="section-header">
+        <div class="mono-label">Onboarding Wizard</div>
+        <h2>Find your way into Wire</h2>
+      </div>
+      {#if onboardingComplete}
+        <div class="onboarding-complete card">
+          <div class="complete-icon">✓</div>
+          <h3>You're oriented.</h3>
+          <p>Role: <strong>{onboardingRole}</strong> · Building: <strong>{onboardingUseCase}</strong></p>
+          <div class="onboarding-actions">
+            <a href="/pitch" class="btn btn-primary">Start with the pitch deck</a>
+            <a href="/product" class="btn btn-outline">Explore the product</a>
+            <a href="/data-room" class="btn btn-outline">Go to the data room</a>
+          </div>
+          <button class="btn btn-outline btn-sm" onclick={resetOnboarding}>Start over</button>
+        </div>
+      {:else}
+        <div class="onboarding-wizard card">
+          <div class="wizard-progress">
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: {((onboardingStep + 1) / onboardingSteps.length) * 100}%"></div>
+            </div>
+            <span class="progress-text">Step {onboardingStep + 1} of {onboardingSteps.length}</span>
+          </div>
+          <h3>{onboardingSteps[onboardingStep].title}</h3>
+          <div class="wizard-options">
+            {#each onboardingSteps[onboardingStep].options as option}
+              <button class="wizard-option" onclick={() => selectOnboarding(option)}>
+                {option}
+              </button>
+            {/each}
+          </div>
+        </div>
+      {/if}
+    </section>
+
+  {:else if activeTab === "partner"}
+    <section class="section">
+      <div class="section-header">
+        <div class="mono-label">Channel / Partner Portal</div>
+        <h2>Co-sell with Wire</h2>
+      </div>
+      <div class="callout">
+        <div class="mono-label">Partner Program</div>
+        <p>Wire's partner program is designed for consultancies and agencies building AI solutions for regulated clients. Partners get co-sell support, deal registration, and Wire training.</p>
+      </div>
+
+      <h3>Dual GTM Motion</h3>
+      <table>
+        <thead><tr><th>Dimension</th><th>Bottoms-Up (PLG)</th><th>Top-Down (Sales)</th></tr></thead>
+        <tbody>
+          {#each gtm.dualMotion as row}
+            <tr>
+              <td><strong>{row.dimension}</strong></td>
+              <td>{row.bottomsUp}</td>
+              <td>{row.topDown}</td>
+            </tr>
+          {/each}
+        </tbody>
+      </table>
+
+      <h3>Partner Benefits</h3>
+      <div class="partner-benefits">
+        <div class="card"><h4>Deal Registration</h4><p>Register a client opportunity. 90-day protection. 15-20% partner margin on managed service + BYOC deals.</p></div>
+        <div class="card"><h4>Co-Sell Support</h4><p>Founder joins your sales call. Technical deep-dive on architecture, compliance, and deployment.</p></div>
+        <div class="card"><h4>Training & Certification</h4><p>Wire Certified Partner program. Self-paced + live training. Certification in container architecture and MCP integration.</p></div>
+        <div class="card"><h4>Joint Marketing</h4><p>Co-branded case studies, webinars, and the Wire partner directory listing.</p></div>
+      </div>
+
+      <div class="callout callout-danger">
+        <div class="mono-label">Status: Not Yet Live</div>
+        <p>The partner program launches post-seed. This portal is the architecture — the intake form, deal registration, and training materials will go live with the first partner cohort. Express interest via <a href="mailto:chris@usewire.io?subject=Partner Program">email</a>.</p>
+      </div>
+    </section>
+
+  {:else if activeTab === "certification"}
+    <section class="section">
+      <div class="section-header">
+        <div class="mono-label">Certification / Education Portal</div>
+        <h2>Wire Certified Partner Program</h2>
+      </div>
+      <div class="cert-grid">
+        <div class="cert-card card">
+          <div class="cert-level">Level 1</div>
+          <h4>Wire Fundamentals</h4>
+          <p>Container architecture, MCP protocol, per-container isolation, the 5 tools.</p>
+          <div class="cert-meta">~2 hours · Self-paced · Free</div>
+        </div>
+        <div class="cert-card card">
+          <div class="cert-level">Level 2</div>
+          <h4>Wire Integration</h4>
+          <p>SDK connect flow, OAuth, API keys, REST automation, agent connection patterns.</p>
+          <div class="cert-meta">~4 hours · Self-paced + lab · Free</div>
+        </div>
+        <div class="cert-card card">
+          <div class="cert-level">Level 3</div>
+          <h4>Wire Certified Partner</h4>
+          <p>BYOC deployment, compliance posture, managed service delivery, deal registration.</p>
+          <div class="cert-meta">~8 hours · Live workshop · Partner-only</div>
+        </div>
+      </div>
+      <div class="callout">
+        <div class="mono-label">Status</div>
+        <p>Curriculum in development. Level 1 will be available as a self-paced module when the open-source community launches. Levels 2-3 launch with the partner program post-seed.</p>
+      </div>
+    </section>
+
+  {:else if activeTab === "layout"}
+    <section class="section">
+      <div class="section-header">
+        <div class="mono-label">Customizable Layout</div>
+        <h2>Reorder and toggle nav sections</h2>
+      </div>
+      <p style="color: var(--text-secondary); margin-bottom: var(--space-lg);">Drag to reorder. Toggle visibility. Your layout preference is for this session only.</p>
+      <div class="layout-list">
+        {#each sections as section, i}
+          <div
+            class="layout-item"
+            role="option"
+            aria-label="Reorder {section.name}"
+            draggable="true"
+            ondragstart={() => dragStart(i)}
+            ondragover={(e) => dragOver(e, i)}
+            ondragend={dragEnd}
+          >
+            <span class="drag-handle">⠿</span>
+            <span class="layout-name">{section.name}</span>
+            <label class="toggle-switch">
+              <input type="checkbox" checked={section.visible} onchange={() => toggleVisibility(section.id)} />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        {/each}
+      </div>
+      <div class="callout">
+        <p>Layout preferences persist for this session. In production, this would save to localStorage or a user account. The nav order you set here affects the sidebar in real time.</p>
+      </div>
+    </section>
+
+  {:else if activeTab === "analytics"}
+    <section class="section">
+      <div class="section-header">
+        <div class="mono-label">Engagement Analytics</div>
+        <h2>How the data room is being used</h2>
+      </div>
+      <div class="analytics-grid">
+        {#each analyticsData as item}
+          <div class="analytics-card card">
+            <div class="analytics-value">{item.value}</div>
+            <div class="analytics-label">{item.metric}</div>
+            <div class="analytics-trend" data-trend={item.trend.startsWith("+") ? "up" : "down"}>{item.trend}</div>
+          </div>
+        {/each}
+      </div>
+      <div class="callout">
+        <div class="mono-label">Note</div>
+        <p>Mock data for demonstration. In production, this would pull from a privacy-respecting analytics backend (Plausible, PostHog, or similar). No third-party tracking cookies — Wire is an engineer-first company.</p>
+      </div>
+    </section>
+
+  {:else if activeTab === "access"}
+    <section class="section">
+      <div class="section-header">
+        <div class="mono-label">Access Control / Gated Content</div>
+        <h2>Who sees what</h2>
+      </div>
+      <div class="access-levels">
+        {#each accessLevels as level}
+          <div class="access-card card" class:active={accessLevel === level.id}>
+            <div class="access-header">
+              <h4>{level.label}</h4>
+              <input type="radio" name="access" value={level.id} bind:group={accessLevel} />
+            </div>
+            <p>{level.desc}</p>
+          </div>
+        {/each}
+      </div>
+
+      <h3>Content Visibility Matrix</h3>
+      <table>
+        <thead><tr><th>Content</th><th>Public</th><th>Email Gate</th><th>Investor</th><th>Partner</th></tr></thead>
+        <tbody>
+          <tr><td>Overview / Pitch</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+          <tr><td>Value Prop / Talking Points</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+          <tr><td>Competitive Matrix</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+          <tr><td>Roadmap</td><td>Summary</td><td>Full</td><td>Full + dates</td><td>Full + dates</td></tr>
+          <tr><td>Data Room (financials)</td><td>—</td><td>—</td><td>✓</td><td>Summary</td></tr>
+          <tr><td>Pipeline details</td><td>—</td><td>—</td><td>✓</td><td>—</td></tr>
+          <tr><td>Investor updates</td><td>—</td><td>—</td><td>✓</td><td>—</td></tr>
+          <tr><td>Partner materials</td><td>—</td><td>—</td><td>—</td><td>✓</td></tr>
+          <tr><td>Research archive</td><td>Index</td><td>Index + previews</td><td>Full</td><td>Full</td></tr>
+        </tbody>
+      </table>
+      <div class="callout">
+        <p>Currently all content is public — Wire is in pre-seed with nothing to hide. The access control framework is built for when the data room contains sensitive pipeline and financial details behind investor NDA.</p>
+      </div>
+    </section>
+
+  {:else if activeTab === "casestudy"}
+    <section class="section">
+      <div class="section-header">
+        <div class="mono-label">Case Study Builder</div>
+        <h2>Generate case study templates</h2>
+      </div>
+      <div class="cs-form card">
+        <div class="cs-field">
+          <label for="cs-company">Company name</label>
+          <input id="cs-company" type="text" bind:value={csCompany} placeholder="e.g., IndiaStox" />
+        </div>
+        <div class="cs-field">
+          <label for="cs-industry">Industry</label>
+          <input id="cs-industry" type="text" bind:value={csIndustry} placeholder="e.g., Financial markets" />
+        </div>
+        <div class="cs-field">
+          <label for="cs-challenge">The challenge</label>
+          <textarea id="cs-challenge" bind:value={csChallenge} rows="3" placeholder="What problem were they solving?"></textarea>
+        </div>
+        <div class="cs-field">
+          <label for="cs-solution">The Wire solution (optional)</label>
+          <textarea id="cs-solution" bind:value={csSolution} rows="3" placeholder="How did Wire solve it? Leave blank for auto-generated."></textarea>
+        </div>
+        <div class="cs-field">
+          <label for="cs-result">The result (optional)</label>
+          <textarea id="cs-result" bind:value={csResult} rows="2" placeholder="What was the outcome?"></textarea>
+        </div>
+        <button class="btn btn-primary" onclick={generateCaseStudy}>Generate Case Study</button>
+      </div>
+
+      {#if csGenerated}
+        <div class="cs-output card">
+          <div class="cs-output-header">
+            <div class="mono-label">Generated Case Study</div>
+            <button class="btn btn-outline btn-sm" onclick={() => {
+              navigator.clipboard.writeText(csGenerated);
+            }}>Copy</button>
+          </div>
+          <pre class="cs-content">{csGenerated}</pre>
+          <button class="btn btn-outline btn-sm" onclick={() => {
+            const blob = new Blob([csGenerated], { type: "text/markdown" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `wire-casestudy-${csCompany.toLowerCase().replace(/\s/g, "-")}.md`;
+            a.click();
+            URL.revokeObjectURL(url);
+          }}>Download .md</button>
+        </div>
+      {/if}
+      <div class="callout">
+        <p>Case studies from the pipeline (IndiaStox, NELFT, Spring Health, Praxent) will be added as deals close and customers agree to be referenced. The builder above generates the template structure.</p>
+      </div>
+    </section>
+  {/if}
+</div>
+
+<style>
+  .page { padding: var(--space-2xl) var(--space-xl); max-width: var(--max-content); margin: 0 auto; }
+  .page-header { margin-bottom: var(--space-xl); }
+  .page-header h1 { margin: var(--space-sm) 0; }
+  .page-header p { color: var(--text-secondary); }
+
+  .tab-bar { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: var(--space-xl); overflow-x: auto; }
+  .tab-btn { padding: 10px 16px; background: none; border: none; border-bottom: 2px solid transparent; color: var(--text-secondary); cursor: pointer; font-size: 13px; font-family: var(--font-body); white-space: nowrap; transition: all var(--transition-fast); }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  .section { margin-bottom: var(--space-2xl); }
+  .section-header { margin-bottom: var(--space-lg); }
+  h3 { margin: var(--space-xl) 0 var(--space-md); }
+
+  .team-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--space-md); margin-bottom: var(--space-lg); }
+  .team-card { padding: var(--space-lg); }
+  .team-avatar { width: 48px; height: 48px; border-radius: 50%; background: var(--accent-glow); color: var(--accent); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 1.5rem; font-weight: 700; margin-bottom: var(--space-md); }
+  .team-role { font-size: 13px; color: var(--accent); margin-bottom: var(--space-sm); }
+  .team-focus { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+
+  .events-list { display: flex; flex-direction: column; gap: var(--space-sm); }
+  .event-row { display: flex; align-items: center; gap: var(--space-lg); padding: var(--space-md) var(--space-lg); }
+  .event-date { font-family: var(--font-mono); font-size: 13px; color: var(--accent); min-width: 110px; }
+  .event-body { flex: 1; }
+  .event-title { font-size: 14px; font-weight: 500; }
+  .event-meta { display: flex; gap: var(--space-md); align-items: center; margin-top: 4px; font-size: 12px; color: var(--text-tertiary); }
+
+  .onboarding-wizard { padding: var(--space-2xl); }
+  .wizard-progress { margin-bottom: var(--space-xl); }
+  .progress-bar { height: 4px; background: var(--bg); border-radius: 2px; overflow: hidden; margin-bottom: var(--space-sm); }
+  .progress-fill { height: 100%; background: var(--accent); transition: width var(--transition); }
+  .progress-text { font-size: 12px; color: var(--text-tertiary); font-family: var(--font-mono); }
+  .wizard-options { display: flex; flex-direction: column; gap: var(--space-sm); margin-top: var(--space-lg); }
+  .wizard-option { padding: var(--space-md) var(--space-lg); background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; text-align: left; font-size: 14px; color: var(--text); font-family: var(--font-body); transition: all var(--transition-fast); }
+  .wizard-option:hover { border-color: var(--accent); background: var(--accent-glow); }
+
+  .onboarding-complete { padding: var(--space-2xl); text-align: center; display: flex; flex-direction: column; align-items: center; gap: var(--space-md); }
+  .complete-icon { width: 64px; height: 64px; border-radius: 50%; background: var(--accent-glow); color: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 2rem; }
+  .onboarding-actions { display: flex; gap: var(--space-sm); flex-wrap: wrap; justify-content: center; margin: var(--space-md) 0; }
+
+  .partner-benefits { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: var(--space-md); margin: var(--space-lg) 0; }
+
+  .cert-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--space-md); }
+  .cert-card { padding: var(--space-lg); }
+  .cert-level { font-family: var(--font-mono); font-size: 12px; color: var(--accent); margin-bottom: var(--space-xs); }
+  .cert-meta { font-size: 11px; color: var(--text-tertiary); margin-top: var(--space-sm); padding-top: var(--space-sm); border-top: 1px solid var(--border); }
+
+  .layout-list { display: flex; flex-direction: column; gap: 4px; max-width: 500px; }
+  .layout-item { display: flex; align-items: center; gap: var(--space-md); padding: 12px var(--space-md); background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: grab; transition: border-color var(--transition-fast); }
+  .layout-item:hover { border-color: var(--accent); }
+  .drag-handle { color: var(--text-tertiary); cursor: grab; font-size: 1.2rem; }
+  .layout-name { flex: 1; font-size: 14px; }
+
+  .toggle-switch { position: relative; width: 40px; height: 22px; }
+  .toggle-switch input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg); border: 1px solid var(--border); border-radius: 22px; transition: var(--transition); }
+  .toggle-slider::before { position: absolute; content: ""; height: 16px; width: 16px; left: 2px; bottom: 2px; background: var(--text-tertiary); border-radius: 50%; transition: var(--transition); }
+  .toggle-switch input:checked + .toggle-slider { background: var(--accent-glow); border-color: var(--accent); }
+  .toggle-switch input:checked + .toggle-slider::before { transform: translateX(18px); background: var(--accent); }
+
+  .analytics-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--space-md); }
+  .analytics-card { padding: var(--space-lg); }
+  .analytics-value { font-family: var(--font-display); font-size: 1.8rem; font-weight: 700; color: var(--accent); }
+  .analytics-label { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+  .analytics-trend { font-size: 11px; margin-top: var(--space-xs); }
+  .analytics-trend[data-trend="up"] { color: var(--accent); }
+  .analytics-trend[data-trend="down"] { color: var(--danger); }
+
+  .access-levels { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: var(--space-md); margin-bottom: var(--space-lg); }
+  .access-card { padding: var(--space-lg); border: 1px solid var(--border); transition: border-color var(--transition); }
+  .access-card.active { border-color: var(--accent); background: var(--accent-glow); }
+  .access-header { display: flex; justify-content: space-between; align-items: center; }
+
+  .cs-form { padding: var(--space-xl); margin-bottom: var(--space-lg); }
+  .cs-field { display: flex; flex-direction: column; gap: var(--space-xs); margin-bottom: var(--space-md); }
+  .cs-field label { font-size: 13px; color: var(--text-secondary); }
+  .cs-field input, .cs-field textarea { padding: 10px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 14px; font-family: var(--font-body); resize: vertical; }
+  .cs-field input:focus, .cs-field textarea:focus { border-color: var(--accent); outline: none; }
+
+  .cs-output { padding: var(--space-lg); }
+  .cs-output-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-md); }
+  .cs-content { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: var(--space-lg); overflow-x: auto; white-space: pre-wrap; font-family: var(--font-mono); font-size: 13px; line-height: 1.6; color: var(--text); margin-bottom: var(--space-md); }
+
+  .btn-sm { padding: 4px 12px; font-size: 12px; }
+</style>

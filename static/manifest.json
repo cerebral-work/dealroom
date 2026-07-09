@@ -1,12 +1,12 @@
 {
-  "name": "cf-pwa-template",
-  "short_name": "pwa",
-  "description": "Cloudflare PWA template",
+  "name": "Wire — Inside the Wire",
+  "short_name": "Wire",
+  "description": "Wire investor data room — pitch, value prop, talking points, compliance, competitive, roadmap. Context as a Service.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#0a0a0a",
-  "theme_color": "#0a0a0a",
+  "background_color": "#18181b",
+  "theme_color": "#18181b",
   "orientation": "portrait-primary",
   "icons": [
     {
@@ -14,6 +14,12 @@
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/apple-touch-icon.svg",
+      "sizes": "180x180",
+      "type": "image/svg+xml",
+      "purpose": "any"
     }
   ]
 }
