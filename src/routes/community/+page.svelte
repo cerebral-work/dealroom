@@ -243,7 +243,7 @@ ${csResult || "Pending — case study in progress."}
         {/each}
       </div>
       <div class="callout">
-        <p>Events are free and open. RSVP to get the calendar invite. Office hours are biweekly; workshops are monthly. All recorded and posted to the research archive.</p>
+        <p>Events are planned — details and dates may change. All recorded and posted to the research archive.</p>
       </div>
     </section>
 

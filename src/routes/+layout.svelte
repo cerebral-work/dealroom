@@ -1,4 +1,5 @@
 <script lang="ts">
+  import "../lib/styles.css";
   import { setContext } from "svelte";
   import { page } from "$app/state";
 
@@ -18,6 +19,7 @@
     { href: "/compliance", label: "Compliance", icon: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z", desc: "Risk calculator, penalties" },
     { href: "/competitive", label: "Competitive", icon: "M18 20V10M12 20V4M6 20v-6", desc: "Comparison matrix" },
     { href: "/roadmap", label: "Roadmap", icon: "M12 6v6l4 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z", desc: "Speculative timeline" },
+    { href: "/gtm", label: "GTM Quest", icon: "M3 3v18h18M9 9h6M9 13h6M9 17h4", desc: "Go-to-market execution plan" },
     { href: "/product", label: "Product", icon: "M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4", desc: "Architecture, tools, SDK" },
     { href: "/metrics", label: "Metrics", icon: "M3 3v18h18M7 12l4-4 4 4 5-5", desc: "Investor metrics, pricing, projections" },
     { href: "/brand", label: "Brand", icon: "M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4-6.2-4.5-6.2 4.5 2.4-7.4L2 9.4h7.6z", desc: "Voice guide, what we say" },
@@ -77,7 +79,7 @@
 </script>
 
 <svelte:head>
-  <title>Wire — Inside the Wire</title>
+  <title>Wire — Inside the Wire [WIP]</title>
   <meta name="description" content="Wire investor data room — pitch, value prop, talking points, compliance, competitive, roadmap. Context as a Service." />
 </svelte:head>
 
@@ -108,6 +110,8 @@
       <span class="logo-sub">Inside the Wire</span>
     </div>
   </a>
+
+  <div class="wip-badge">Work in progress</div>
 
   <nav class="nav">
     {#each navItems as item}
@@ -167,8 +171,6 @@
 </main>
 
 <style>
-  @import "../lib/styles.css";
-
   .sidebar {
     position: fixed;
     left: 0;
@@ -191,6 +193,19 @@
     text-decoration: none;
     color: var(--text);
     border-bottom: 1px solid var(--border);
+  }
+
+  .wip-badge {
+    align-self: flex-start;
+    margin: var(--space-sm) var(--space-lg) 0;
+    padding: 2px 8px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    border: 1px solid var(--accent-dim);
+    border-radius: var(--radius-sm);
   }
 
   .logo-text { display: flex; flex-direction: column; }

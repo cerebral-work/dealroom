@@ -22,6 +22,7 @@
     "Market",
     "Competition",
     "Traction",
+    "Why Now",
     "GTM",
     "Roadmap",
     "Ask",
@@ -429,7 +430,21 @@
           </div>
         </div>
       {:else if current === 9}
-        <!-- 10. GTM -->
+        <!-- 10. Why Now -->
+        <div class="slide-inner">
+          <div class="mono-label">Why Now</div>
+          <h2>The window is open — and narrowing.</h2>
+          <div class="why-now-grid">
+            {#each market.timingSignals as signal}
+              <div class="why-now-card card">
+                <div class="why-now-signal">{signal.signal}</div>
+                <div class="why-now-evidence">{signal.evidence}</div>
+              </div>
+            {/each}
+          </div>
+        </div>
+      {:else if current === 10}
+        <!-- 11. GTM -->
         <div class="slide-inner">
           <div class="mono-label">Go to Market</div>
           <h2>Dual motion. Bottoms-up PLG, top-down enterprise.</h2>
@@ -469,8 +484,8 @@
             <strong>PQL rule:</strong> {gtm.pqlRule}
           </div>
         </div>
-      {:else if current === 10}
-        <!-- 11. Roadmap -->
+      {:else if current === 11}
+        <!-- 12. Roadmap -->
         <div class="slide-inner">
           <div class="mono-label">Roadmap</div>
           <h2>From ship-the-container to MCP ecosystem.</h2>
@@ -493,8 +508,8 @@
             {/each}
           </div>
         </div>
-      {:else if current === 11}
-        <!-- 12. Ask -->
+      {:else if current === 12}
+        <!-- 13. Ask -->
         <div class="slide-inner ask-slide">
           <div class="mono-label">The Ask</div>
           <h2>{wire.raise} pre-seed</h2>
@@ -528,8 +543,8 @@
             </p>
           </div>
         </div>
-      {:else if current === 12}
-        <!-- 13. Contact -->
+      {:else if current === 13}
+        <!-- 14. Contact -->
         <div class="slide-inner contact-slide">
           <div class="logo-block">
             <span class="logo-mark"></span>
@@ -1314,4 +1329,8 @@
     }
     .nav-arrow { display: none; }
   }
+  .why-now-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: var(--space-md); margin-top: var(--space-lg); }
+  .why-now-card { padding: var(--space-md); }
+  .why-now-signal { font-size: 14px; font-weight: 600; margin-bottom: var(--space-xs); }
+  .why-now-evidence { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
 </style>

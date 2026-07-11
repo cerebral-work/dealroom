@@ -17,6 +17,7 @@
     { id: "ca", label: "Canada" },
     { id: "mx", label: "Mexico" },
     { id: "eu", label: "European Union" },
+    { id: "uk", label: "United Kingdom" },
   ];
 
   const penaltyData = [
@@ -26,6 +27,7 @@
     { region: "EU", regulation: "NIS2", penalty: "€10M / 2%", severity: 3, details: "Cybersecurity, 24h/72h/1-month incident reporting, personal executive liability" },
     { region: "US", regulation: "HIPAA", penalty: "$2.19M annual cap (Tier 4)", severity: 2, details: "PHI, BAA required, per-violation caps by tier" },
     { region: "US", regulation: "BIPA (Illinois)", penalty: "$5,000/violation per-person", severity: 2, details: "Retroactive — class action exposure, per-person damages" },
+    { region: "UK", regulation: "UK GDPR + DPA 2018", penalty: "£17.5M / 4% global turnover", severity: 4, details: "Retained EU GDPR as amended by DPA 2018; NELFT/NHS procurement requires compliance" },
   ];
 
   let filteredPenalties = $derived(
@@ -35,6 +37,7 @@
           if (selectedRegion === "us") return p.region === "US";
           if (selectedRegion === "ca") return p.region === "CA";
           if (selectedRegion === "eu") return p.region === "EU";
+          if (selectedRegion === "uk") return p.region === "UK";
           return true;
         })
   );
