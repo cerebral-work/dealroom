@@ -253,6 +253,67 @@
       {/each}
     </div>
   </section>
+
+  <!-- 48-Hour Cryptographic Agent Security & Governance Audit SKU (EST-1469 / SPEC-0115) -->
+  {#if compliance.auditSku}
+    <section class="section">
+      <div class="section-header">
+        <div class="mono-label">Turnkey GTM Wedge · {compliance.auditSku.turnaround}</div>
+        <h2>{compliance.auditSku.name}</h2>
+      </div>
+
+      <div class="callout">
+        <div class="mono-label">Offline CLI Invocation</div>
+        <p><code>{compliance.auditSku.cliCommand}</code></p>
+        <p style="margin-top: var(--space-sm); font-size: 13px; color: var(--text-secondary);">
+          <strong>Key Custody:</strong> {compliance.auditSku.keyCeremony}
+        </p>
+      </div>
+
+      <div class="jurisdiction-grid" style="margin-top: var(--space-lg);">
+        {#each compliance.auditSku.deliverables as d}
+          <div class="card jurisdiction-card">
+            <div class="mono-label">{d.artifact}</div>
+            <div style="font-family: var(--font-mono); font-size: 11px; color: var(--accent); margin-top: 4px;">
+              {d.format}
+            </div>
+            <p>{d.summary}</p>
+          </div>
+        {/each}
+      </div>
+
+      <table style="margin-top: var(--space-lg);">
+        <thead>
+          <tr>
+            <th>Framework</th>
+            <th>Compiled Clause ID ({compliance.auditSku.mappingVersion})</th>
+            <th>Required Provenance Floor</th>
+            <th>Observed Transcript Verdict</th>
+          </tr>
+        </thead>
+        <tbody>
+          {#each compliance.auditSku.frameworks as fw}
+            <tr>
+              <td><code>{fw.id}</code></td>
+              <td><code>{fw.clause}</code></td>
+              <td><span class="badge badge-accent">{fw.requiredGrade}</span></td>
+              <td>
+                <code>
+                  {fw.requiredGrade === "attested"
+                    ? "gap-upgrade-to-attested"
+                    : "gap-upgrade-to-enforced"}
+                </code>
+              </td>
+            </tr>
+          {/each}
+        </tbody>
+      </table>
+
+      <div class="callout callout-danger" style="margin-top: var(--space-lg);">
+        <p><strong>Human Legal Review Gate (w5Q:p1 A2):</strong> {compliance.auditSku.legalReviewGate}</p>
+      </div>
+    </section>
+  {/if}
 </div>
 
 <style>
